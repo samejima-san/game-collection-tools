@@ -75,17 +75,23 @@ def update_gametime():
     # Print results
     for game in games:
         gamehash[game[0]] = game[1]
-        #print(f"Name: {game[0]}, Hours Played: {game[1]}")
     output = ""
+
     for key, value in steamhash.items():
         if key in gamehash:
             if value > gamehash[key]:
                 output += f"UPDATE lib SET hours_played = {value} WHERE vg_name = '{key}'; \n"
     output += f"\nINSERT INTO lib(vg_name, hours_played)\nVALUES"
+
+    outputlist = []
     for key, value in steamhash.items():
-        if key not in gamehash:
-            output += f"('{key}',{value}),\n"
-    output += ";"
+        if key not in gamehash and key != 'Wallpaper Engine':
+            outputlist.append([key.replace("'","''"), value])
+
+    for i in range(len(outputlist)-2):
+        output += f"('{outputlist[i][0]}', {outputlist[i][1]}),\n"
+    output += f"('{outputlist[-1][0]}',{outputlist[-1][1]});"
+
     with open('updatequery.txt', 'w') as f:
         f.write(output)
     # Close connection
@@ -108,6 +114,7 @@ def add_data_for_lost_hours():
     for game in games:
         howlonggames += hltb.search(game[0])
         #howlonggames.append((game[0].game_name, game[0].main_story))
+
     output = ""
     for game in howlonggames:
         if game.game_name in gamesonly:
