@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import math
+from datetime import datetime
 
 import requests
 import json
@@ -68,6 +70,7 @@ def update_gametime():
     gamehash = {}
     steamlibrary = get_steam_library(API_KEY, STEAM_ID)
     steamhash = {}
+    #so basically, get database where gametime = 0, then compare to 
 
     for game in steamlibrary:
         steamhash[game['name']] = math.floor(game['playtime_forever']/60)
@@ -79,7 +82,9 @@ def update_gametime():
 
     for key, value in steamhash.items():
         if key in gamehash:
-            if value > gamehash[key]:
+            if (gamehash[key] == 0 and value > gamehash[key]):
+                output += f"UPDATE lib SET hours_played = {value}, year_played = {datetime.now().year} WHERE vg_name = '{key}'; \n"
+            elif value > gamehash[key]:
                 output += f"UPDATE lib SET hours_played = {value} WHERE vg_name = '{key}'; \n"
 
 
@@ -97,6 +102,8 @@ def update_gametime():
         for i in range(len(outputlist)-2):
             output += f"('{outputlist[i][0]}', {outputlist[i][1]}),\n"
         output += f"('{outputlist[-1][0]}',{outputlist[-1][1]});"
+    if(len(output) == 0):
+        return
 
     with open('updatequery.txt', 'w') as f:
         f.write(output)
@@ -130,6 +137,7 @@ def add_data_for_lost_hours():
 
     cur.close()
     conn.close()
+
 
 if __name__ == "__main__":
     #update_gametime()

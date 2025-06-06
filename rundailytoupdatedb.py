@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import slibexp
 import psycopg2
 import os
@@ -22,10 +23,18 @@ def autoupdatedb():
     slibexp.update_gametime()
     with open("updatequery.txt", "r") as f:
         query_string = f.read()
+    if(len(query_string)==0):
+        print("nothing to add to Database")
+        cur.close()
+        conn.close()
+        return
     cur.execute(query_string)
     conn.commit()
     cur.close()
     conn.close()
     print("updated database")
+    return
 
-autoupdatedb()
+
+if __name__ == "__main__":
+    autoupdatedb()
