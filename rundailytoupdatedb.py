@@ -21,7 +21,7 @@ conn = psycopg2.connect(
 def autoupdatedb():
     cur = conn.cursor()
     slibexp.update_gametime()
-    with open("updatequery.txt", "r") as f:
+    with open("./logs/updatequery.txt", "r") as f:
         query_string = f.read()
     if(len(query_string)==0):
         print("nothing to add to Database")

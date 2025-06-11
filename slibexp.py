@@ -105,7 +105,7 @@ def update_gametime():
     if(len(output) == 0):
         return
 
-    with open('updatequery.txt', 'w') as f:
+    with open('./logs/updatequery.txt', 'w') as f:
         f.write(output)
     # Close connection
     cur.close()
@@ -137,12 +137,6 @@ def add_data_for_lost_hours():
 
     cur.close()
     conn.close()
-
-
-if __name__ == "__main__":
-    #update_gametime()
-    #add_data_for_lost_hours()
-    pass
 
 
 
