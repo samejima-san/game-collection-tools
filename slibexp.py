@@ -13,6 +13,8 @@ load_dotenv()
 # Replace with your Steam API key and Steam ID
 API_KEY = os.getenv("API_KEY")
 STEAM_ID = os.getenv("STEAM_ID")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+log_path = os.path.join(base_dir, ".logs", "updatequery.txt")
 
 # Connect to your database
 conn = psycopg2.connect(
@@ -105,7 +107,7 @@ def update_gametime():
     if(len(output) == 0):
         return
 
-    with open('./logs/updatequery.txt', 'w') as f:
+    with open('.updatequery', 'w') as f:
         f.write(output)
     # Close connection
     cur.close()

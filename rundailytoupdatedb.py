@@ -8,6 +8,9 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 STEAM_ID = os.getenv("STEAM_ID")
 
+base_dir = os.path.dirname(os.path.abspath(__file__))
+log_path = os.path.join(base_dir, "/.logs", "updatequery.txt")
+
 # Connect to your database
 conn = psycopg2.connect(
     dbname=os.getenv("DBNAME"),
@@ -21,7 +24,7 @@ conn = psycopg2.connect(
 def autoupdatedb():
     cur = conn.cursor()
     slibexp.update_gametime()
-    with open("./logs/updatequery.txt", "r") as f:
+    with open('.updatequery', "r") as f:
         query_string = f.read()
     if(len(query_string)==0):
         print("nothing to add to Database")
