@@ -1,9 +1,21 @@
 import requests
 import os
+import psycopg2
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+load_dotenv()
 
-gamertag = "Saint-3114"
-gamerid = "439884"
+conn= psycopg2.connect(
+    dbname=os.getenv("DBNAME"),
+    user=os.getenv("USER"),
+    password=os.getenv("PASSWORD"),
+    host="localhost",
+    port="5432"
+)
+
+
+gamertag = os.getenv("GAMERTAG")
+gamerid = os.getenv("GAMER_ID")
 url = f"https://www.trueachievements.com/gamer/{gamertag}/games"
 counter = 1
 
@@ -48,5 +60,17 @@ def getListOfGames():
             puregamelist.append((arr.text, arr.find("a").get("href", "").strip()))
 
     return puregamelist
+
+def update_gametime():
+    cur = conn.cursor()
+    cur.execute("SELECT vg_name, hours_played, finished FROM lib;")
+
+    games = cur.fetchall()
+    gamehash = {}
+    xboxlibrary = getListOfGames()
+    xboxhash = {}
+
+    for game in xboxlibrary:
+        xboxhash[game[0]]= game[1] #vg_name  link
 
 
