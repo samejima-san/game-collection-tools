@@ -65,12 +65,99 @@ def update_gametime():
     cur = conn.cursor()
     cur.execute("SELECT vg_name, hours_played, finished FROM lib;")
 
-    games = cur.fetchall()
+    games = cur.fetchall() #vg_name hours_played finished
     gamehash = {}
     xboxlibrary = getListOfGames()
     xboxhash = {}
 
     for game in xboxlibrary:
         xboxhash[game[0]]= game[1] #vg_name  link
+    
+    for game in games:
+        gamehash[game[0]] = (game[1], game[2])
 
+    output = []
+    for key, value in xboxhash.items():
+        if key not in gamehash:
+            #add it to the .xboxoutput file for not
+            output.append([key.replace("'","''"), getLinkInfo(value)]) #year_played, time_played, is_finished, is_completed
+    print(output)
 
+    fileoutput = ""
+
+    if len(output) >= 1:
+        fileoutput+="INSERT INTO lib(vg_name, year_played, hours_played, finished, completed)\nVALUES"
+    if len(output) == 1:
+        fileoutput+=f"('{output[0][0]}',{output[0][1][0]},{output[0][1][1]},{output[0][1][2]},{output[0][1][3]});"#output[fullfile, 0/1, 0/3] name/info   year/hours/complete/finish 
+    elif len(output) > 1:
+        for i in range(len(output)-2):
+            fileoutput+=f"('{output[i][0]}',{output[i][1][0]},{output[i][1][1]},{output[i][1][2]},{output[i][1][3]}),\n"#output[fullfile, 0/1, 0/3] name/info   year/hours/complete/finish 
+        fileoutput+=f"('{output[-1][0]}',{output[-1][1][0]},{output[-1][1][1]},{output[-1][1][2]},{output[-1][1][3]});"#output[fullfile, 0/1, 0/3] name/info   year/hours/complete/finish 
+    if(len(fileoutput) == 0): return
+    
+    with open('.xbox_query', "w") as f:
+        f.write(fileoutput)
+
+        cur.close()
+
+def getLinkInfo(value):
+    link = "https://www.trueachievements.com"+ value
+    response = requests.get(link, headers=headers)
+    soup = BeautifulSoup(response.text, "lxml")
+    year_played = soup.find_all(class_="lock u")
+    year_played = getYearPlayed(year_played) #4 digit year
+    time_played = getTimePlayed(soup) #hours_played or None
+    is_finished = getFinished(soup)#returns true or False
+    is_completed = getCompleted(soup)#returns true or false 
+    if is_completed == True: is_finished = True #when the game is completed the tag needed for finished isnt there
+    return [year_played, time_played, is_finished, is_completed]
+
+def getYearPlayed(year_list):
+    check = []
+    for year in year_list:
+        string = ""
+        year = year.text
+        for i in range(0, len(year)):
+            if year[i] != "-":
+                string+=year[i]
+                if year[i-1] == "-":
+                    break
+        if "line" in string: return 1
+        check.append(string)
+    if "offline" in check: 
+        return None
+    earliest = 9999999
+    for year in check:
+        #print(year)
+        earliest = min(earliest, int(year[-6:-2]))
+    return earliest
+
+def getTimePlayed(html):
+    timeplayed = html.find("span", {"title":"Time played"})
+    if timeplayed is None or len(timeplayed.text)<=3:
+        return 0
+    else:
+        timeplayed = timeplayed.text
+        output = ""
+        lastchar=None
+        for char in timeplayed:
+            if char != "h":
+                output+=char
+                if lastchar == "h":
+                    return int(output[:-1])
+            lastchar = char
+
+def getFinished(html):
+    isfinished = html.find("span", {"title":"Story completed"})
+    if isfinished is None:
+        return False 
+    else:
+        return True
+
+def getCompleted(html):
+    iscompleted = html.find("span", {"title":"Completed including owned DLC"})
+    if iscompleted is None:
+        return False 
+    else:
+        return True
+    
