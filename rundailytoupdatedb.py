@@ -37,7 +37,7 @@ def autoupdatedb():
         cur.close()
         conn.close()
         return
-    cur.execute(xbox_string)
+    #cur.execute(xbox_string)
     cur.execute(query_string)
     conn.commit()
     cur.close()
