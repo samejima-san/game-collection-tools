@@ -29,15 +29,12 @@ def autoupdatedb():
         query_string = f.read()
     if(len(query_string)==0):
         print("nothing to add to Database")
-    #xlibexp.update_gametime()
-    #with open('.xbox_query', "r") as f:
-     #   xbox_string = f.read()
-    #if(len(xbox_string)==0):
-     #   print("xbox, nothing to add.")
-        cur.close()
-        conn.close()
-        return
-    #cur.execute(xbox_string)
+    xlibexp.update_gametime()
+    with open('.test_xbox_query', "r") as f:
+        xbox_string = f.read()
+    if(len(xbox_string)==0):
+        print("xbox, nothing to add.")
+    cur.execute(xbox_string)
     cur.execute(query_string)
     conn.commit()
     cur.close()

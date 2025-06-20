@@ -63,27 +63,35 @@ def getListOfGames():
 
 def update_gametime():
     cur = conn.cursor()
-    cur.execute("SELECT vg_name, hours_played, finished FROM lib;")
+    cur.execute("SELECT vg_name, hours_played, finished, year_played FROM lib;")
 
-    games = cur.fetchall() #vg_name hours_played finished
+    games = cur.fetchall() #vg_name hours_played finished, year_played
     gamehash = {}
     xboxlibrary = getListOfGames()
     xboxhash = {}
 
     for game in xboxlibrary:
-        xboxhash[game[0]]= game[1] #vg_name  link
+        xboxhash[game[0]] = game[1] #vg_name  link
     
     for game in games:
-        gamehash[game[0]] = (game[1], game[2])
+        gamehash[game[0]] = (game[1], game[2], game[3])# vg_name (hours_played, finished, year_played)
 
     output = []
+    fileoutput = ""
     for key, value in xboxhash.items():
         if key not in gamehash:
             #add it to the .xboxoutput file for not
             output.append([key.replace("'","''"), getLinkInfo(value)]) #year_played, time_played, is_finished, is_completed
-    print(output)
+        if key in gamehash:
+            rep = requests.get("https://www.trueachievements.com"+value, headers=headers)
+            var = BeautifulSoup(rep.text, "lxml")
+            if gamehash[key][2] == None:
+                fileoutput+=f"UPDATE lib SET year_played = {getYearPlayed(var)} WHERE vg_name = '{key.replace("'","''")}';\n"
+            time = getTimePlayed(var)
+            if gamehash[key][0]<time:
+                fileoutput+=f"UPDATE lib SET hours_played = {time} WHERE vg_name = '{key.replace("'","''")}';\n"
+                
 
-    fileoutput = ""
 
     if len(output) >= 1:
         fileoutput+="INSERT INTO lib(vg_name, year_played, hours_played, finished, completed)\nVALUES"
@@ -104,33 +112,20 @@ def getLinkInfo(value):
     link = "https://www.trueachievements.com"+ value
     response = requests.get(link, headers=headers)
     soup = BeautifulSoup(response.text, "lxml")
-    year_played = soup.find_all(class_="lock u")
-    year_played = getYearPlayed(year_played) #4 digit year
+    year_played = getYearPlayed(soup) #4 digit year
     time_played = getTimePlayed(soup) #hours_played or None
     is_finished = getFinished(soup)#returns true or False
     is_completed = getCompleted(soup)#returns true or false 
     if is_completed == True: is_finished = True #when the game is completed the tag needed for finished isnt there
     return [year_played, time_played, is_finished, is_completed]
 
-def getYearPlayed(year_list):
-    check = []
-    for year in year_list:
-        string = ""
-        year = year.text
-        for i in range(0, len(year)):
-            if year[i] != "-":
-                string+=year[i]
-                if year[i-1] == "-":
-                    break
-        if "line" in string: return 1
-        check.append(string)
-    if "offline" in check: 
-        return None
-    earliest = 9999999
-    for year in check:
-        #print(year)
-        earliest = min(earliest, int(year[-6:-2]))
-    return earliest
+def getYearPlayed(html):
+    firstplayed = html.find("span",{"title":"First played"})
+    firstplayed =firstplayed.text
+    if firstplayed is None or len(firstplayed)<=3:
+        return 0
+    concat = "20"+firstplayed[-2:]
+    return int(concat)
 
 def getTimePlayed(html):
     timeplayed = html.find("span", {"title":"Time played"})
@@ -160,4 +155,4 @@ def getCompleted(html):
         return False 
     else:
         return True
-    
+
