@@ -14,13 +14,13 @@ conn= psycopg2.connect(
 )
 
 
-gamertag = os.getenv("GAMERTAG")
-gamerid = os.getenv("GAMER_ID")
-url = f"https://www.trueachievements.com/gamer/{gamertag}/games"
+gamertag = os.getenv("PSN")
+gamerid = os.getenv("PSNID")
+url = f"https://www.truetrophies.com/gamer/{gamertag}/games"
 counter = 1
 
 url3 = (
-    f"https://www.trueachievements.com/gamer/{gamertag}/games?"
+    f"https://www.truetrophies.com/gamer/{gamertag}/games?"
     "function=AjaxList"
     "&params=oGamerGamesList|"
     f"&oGamerGamesList_Page={counter}"
@@ -44,7 +44,7 @@ def getListOfGames():
     end = int(end)
     for counter in range(1, end+1):
         urllist.append(
-            f"https://www.trueachievements.com/gamer/{gamertag}/games?function=AjaxList&params=oGamerGamesList|&oGamerGamesList_Page={counter}&oGamerGamesList_ItemsPerPage=400oGamerGamesList_ShowAll=True"
+            f"https://www.truetrophies.com/gamer/{gamertag}/games?function=AjaxList&params=oGamerGamesList|&oGamerGamesList_Page={counter}&oGamerGamesList_ItemsPerPage=400oGamerGamesList_ShowAll=True"
         )
 
     for url in urllist:
@@ -83,7 +83,7 @@ def update_gametime():
             #add it to the .xboxoutput file for not
             output.append([key.replace("'","''"), getLinkInfo(value)]) #year_played, time_played, is_finished, is_completed
         if key in gamehash:
-            rep = requests.get("https://www.trueachievements.com"+value, headers=headers)
+            rep = requests.get("https://www.truetrophies.com"+value, headers=headers)
             var = BeautifulSoup(rep.text, "lxml")
             if gamehash[key][2] == None:
                 fileoutput+=f"UPDATE lib SET year_played = {getYearPlayed(var)} WHERE vg_name = '{key.replace("'","''")}';\n"
@@ -103,13 +103,13 @@ def update_gametime():
         fileoutput+=f"('{output[-1][0]}',{output[-1][1][0]},{output[-1][1][1]},{output[-1][1][2]},{output[-1][1][3]});"#output[fullfile, 0/1, 0/3] name/info   year/hours/complete/finish 
     if(len(fileoutput) == 0): return
     
-    with open('.xbox_query', "w") as f:
+    with open('.playstation_query', "w") as f:
         f.write(fileoutput)
 
-        cur.close()
+    cur.close()
 
 def getLinkInfo(value):
-    link = "https://www.trueachievements.com"+ value
+    link = "https://www.truetrophies.com"+ value
     response = requests.get(link, headers=headers)
     soup = BeautifulSoup(response.text, "lxml")
     year_played = getYearPlayed(soup) #4 digit year
@@ -157,3 +157,5 @@ def getCompleted(html):
     else:
         return True
 
+if __name__=="__main__":
+    update_gametime()
