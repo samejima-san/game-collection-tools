@@ -1,4 +1,4 @@
-# Steam Library Exporter
+# Game Collection Tools
 
 Export your entire Steam library to your own personal database with clean, customizable queries.
 
