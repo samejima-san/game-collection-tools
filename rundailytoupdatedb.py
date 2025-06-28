@@ -30,19 +30,25 @@ def autoupdatedb():
         steam_string = f.read()
     if(len(steam_string)==0):
         print("steam, nothing to add.")
+    else:
+        cur.execute(steam_string)
+
     xlibexp.update_gametime()
     with open('.xbox_query', "r") as f:
         xbox_string = f.read()
     if(len(xbox_string)==0):
         print("xbox, nothing to add.")
+    else:
+        cur.execute(xbox_string)
+
     plibexp.update_gametime()
     with open('.playstation_query', "r") as f:
         playstation_string = f.read()
     if(len(playstation_string)==0):
         print("playstation, nothing to add.")
-    cur.execute(xbox_string)
-    cur.execute(steam_string)
-    cur.execute(playstation_string)
+    else:
+        cur.execute(playstation_string)
+
     conn.commit()
     cur.close()
     conn.close()

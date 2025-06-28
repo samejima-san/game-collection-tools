@@ -101,7 +101,7 @@ def update_gametime():
         for i in range(len(output)-2):
             fileoutput+=f"('{output[i][0]}',{output[i][1][0]},{output[i][1][1]},{output[i][1][2]},{output[i][1][3]}),\n"#output[fullfile, 0/1, 0/3] name/info   year/hours/complete/finish 
         fileoutput+=f"('{output[-1][0]}',{output[-1][1][0]},{output[-1][1][1]},{output[-1][1][2]},{output[-1][1][3]});"#output[fullfile, 0/1, 0/3] name/info   year/hours/complete/finish 
-    if(len(fileoutput) == 0): return
+    if(len(fileoutput) == 0): fileoutput+=""
     
     with open('.playstation_query', "w") as f:
         f.write(fileoutput)
